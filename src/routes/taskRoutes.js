@@ -46,6 +46,11 @@ router.post("/", async (req, res) => {
   try {
     const task = new Task(req.body);
     await task.save();
+    await task.populate({
+      path: "listInfo",
+      select: "name",
+      match: { deletedAt: null },
+    });
     res.json(task);
   } catch (error) {
     console.error("❌ Error creating task:", error);
@@ -55,10 +60,10 @@ router.post("/", async (req, res) => {
 
 // Chỉnh sửa task
 router.patch("/:id", async (req, res) => {
-  const { title, text } = req.body;
+  const { title, text, checklist } = req.body;
   const updated = await Task.findByIdAndUpdate(
     req.params.id,
-    { title, text },
+    { title, text, checklist },
     { new: true },
   );
   res.json(updated);
