@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import taskRoutes from "./routes/taskRoutes.js";
-import listRoutes from './routes/listRoutes.js'
+import listRoutes from "./routes/listRoutes.js";
+import { startTaskCleanupCron } from "./cron/taskCleanup.js";
 
 dotenv.config();
 
@@ -23,27 +24,31 @@ app.use((req, res, next) => {
 });
 
 // Connect MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ Connected to MongoDB Atlas"))
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("✅ Connected to MongoDB Atlas");
+    startTaskCleanupCron();
+  })
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Listen for Mongoose connection events
-mongoose.connection.on('error', err => {
-  console.error('❌ Mongoose runtime error:', err);
+mongoose.connection.on("error", (err) => {
+  console.error("❌ Mongoose runtime error:", err);
 });
 
-mongoose.connection.on('disconnected', () => {
-  console.warn('⚠️ Mongoose connection lost.');
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠️ Mongoose connection lost.");
 });
 
-mongoose.connection.on('reconnected', () => {
-  console.log('✅ Mongoose reconnected.');
+mongoose.connection.on("reconnected", () => {
+  console.log("✅ Mongoose reconnected.");
 });
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await mongoose.connection.close();
-  console.log('🔌 Mongoose connection closed due to app termination.');
+  console.log("🔌 Mongoose connection closed due to app termination.");
   process.exit(0);
 });
 
