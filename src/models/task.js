@@ -69,7 +69,7 @@ TaskSchema.set("toObject", {
 TaskSchema.pre(/^find/, function autoPopulateList(next) {
   this.populate({
     path: "listInfo",
-    select: "name",
+    select: "name userId deletedAt",
     match: { deletedAt: null },
   });
   next();
